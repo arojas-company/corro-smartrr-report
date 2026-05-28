@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "updated_at": "2026-05-28T06:11:32.561659+00:00",
+    "source": "Smartrr API",
+    "only_concierge_tagged_orders": true,
+    "raw_json_limit": 2000,
+    "raw_total_rows_in_sheet": 1
+  },
+  "ranges": [
+    {
+      "range_id": "2026",
+      "range_label": "2026 Full Year",
+      "range_start": "2026-01-01",
+      "range_end": "2026-12-31",
+      "range_status": "open"
+    }
+  ],
+  "summary": [
+    {
+      "range_id": "2026",
+      "metric": "Gross Sales",
+      "value": 0.0
+    },
+    {
+      "range_id": "2026",
+      "metric": "Net Sales",
+      "value": 0.0
+    },
+    {
+      "range_id": "2026",
+      "metric": "Gross Profit",
+      "value": 0.0
+    },
+    {
+      "range_id": "2026",
+      "metric": "Gross Margin",
+      "value": 0
+    },
+    {
+      "range_id": "2026",
+      "metric": "Discounts",
+      "value": 0
+    },
+    {
+      "range_id": "2026",
+      "metric": "Total Customers",
+      "value": 1
+    },
+    {
+      "range_id": "2026",
+      "metric": "Orders",
+      "value": 1
+    },
+    {
+      "range_id": "2026",
+      "metric": "Concierge Tagged Only",
+      "value": "YES"
+    },
+    {
+      "range_id": "2026",
+      "metric": "Top Month",
+      "value": ""
+    },
+    {
+      "range_id": "2026",
+      "metric": "Top Month Net Sales",
+      "value": 0
+    }
+  ],
+  "customers": [
+    {
+      "range_id": "2026",
+      "rank": 1,
+      "customer_id": "",
+      "customer_name": "",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "phone": "",
+      "orders": 1,
+      "gross_sales": 0.0,
+      "discounts": 0,
+      "net_sales": 0.0,
+      "gross_profit": 0.0,
+      "first_order_date": "",
+      "last_order_date": "",
+      "gross_margin": 0.0,
+      "sales_rep": "Unassigned",
+      "tags": "Smartrr",
+      "is_concierge_tagged": "YES",
+      "top_month": ""
+    }
+  ],
+  "months": [
+    {
+      "range_id": "2026",
+      "month": NaN,
+      "customer_id": "",
+      "customer_name": "",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "phone": "",
+      "orders": 1,
+      "gross_sales": 0.0,
+      "discounts": 0,
+      "net_sales": 0.0,
+      "gross_profit": 0.0,
+      "gross_margin": 0.0,
+      "sales_rep": "Unassigned",
+      "tags": "Smartrr"
+    }
+  ],
+  "raw": [
+    {
+      "range_id": "2026",
+      "subscription_id": "",
+      "status": "",
+      "customer_id": "",
+      "customer_name": "",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "phone": "",
+      "product_title": "",
+      "sku": "",
+      "quantity": 1.0,
+      "price": 0.0,
+      "gross_sales": 0.0,
+      "discounts": 0,
+      "net_sales": 0.0,
+      "gross_profit": 0.0,
+      "gross_margin": 0,
+      "created_at": "",
+      "next_billing_date": "",
+      "cancelled_at": "",
+      "sales_rep": "Unassigned",
+      "tags": "Smartrr",
+      "is_concierge_tagged": "YES"
+    }
+  ]
+}
