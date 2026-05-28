@@ -1,0 +1,63 @@
+
+name: Build Smartrr Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 1 * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+
+    env:
+      SMARTRR_API_TOKEN: ${{ secrets.SMARTRR_API_TOKEN }}
+      SMARTRR_API_BASE: ${{ vars.SMARTRR_API_BASE }}
+      SMARTRR_SHOP: ${{ vars.SMARTRR_SHOP }}
+      SMARTRR_SUBSCRIPTIONS_ENDPOINT: ${{ vars.SMARTRR_SUBSCRIPTIONS_ENDPOINT }}
+      REPORT_YEAR: "2026"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set default variables
+        run: |
+          echo "SMARTRR_API_BASE=${SMARTRR_API_BASE:-https://api.smartrr.com}" >> $GITHUB_ENV
+          echo "SMARTRR_SHOP=${SMARTRR_SHOP:-equestrian-labs.myshopify.com}" >> $GITHUB_ENV
+          echo "SMARTRR_SUBSCRIPTIONS_ENDPOINT=${SMARTRR_SUBSCRIPTIONS_ENDPOINT:-/subscriptions}" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test Smartrr API
+        run: |
+          python scripts/probe_smartrr.py
+
+      - name: Build report
+        run: |
+          python scripts/build_report.py
+
+      - name: Upload Excel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartrr-excel-report
+          path: reports/*.xlsx
+
+      - name: Commit report JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add data/report.json
+          git commit -m "Update Smartrr report data" || echo "No changes to commit"
+          git push
