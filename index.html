@@ -1,1 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corro — Smartrr Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --navy:#0C1B2E;--green:#3DBF7A;--gold:#D4A017;--red:#F87171;
+      --text:#F2F1ED;--muted:#B8B7B0;--soft:#111A28;--soft2:#162030;
+      --soft3:#1C2A3A;--border:#2A3748;
+    }
+    [data-theme="light"]{
+      --text:#0C1B2E;--muted:#4B5C70;--soft:#FFFFFF;--soft2:#F4F6FA;
+      --soft3:#EBEEF5;--border:#D0D8E3;
+    }
+    body{font-family:Inter,Arial,sans-serif;background:var(--soft);color:var(--text);min-height:100vh}
+    .topbar{background:var(--navy);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:24px;height:24px;border-radius:50%;background:var(--green)}
+    .brand-title{font-size:18px;font-weight:900;letter-spacing:-.03em}
+    .brand-sub{font-size:11px;color:rgba(255,255,255,.58);text-transform:uppercase;font-weight:800;letter-spacing:.1em}
+    .controls,.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    button,select,input{border:1px solid var(--border);background:var(--soft2);color:var(--text);border-radius:10px;padding:9px 12px;font-size:13px;outline:none}
+    button{cursor:pointer;font-weight:800}
+    button:hover{border-color:var(--green);color:var(--green)}
+    .container{padding:24px 28px}
+    .notice{background:var(--soft2);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:14px;padding:12px 14px;color:var(--muted);font-size:13px;margin-bottom:16px}
+    .filters{margin-bottom:16px}
+    .filters input{min-width:320px}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+    .card{background:var(--soft2);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:16px;padding:16px}
+    .card.gold{border-top-color:var(--gold)}.card.red{border-top-color:var(--red)}
+    .label{color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.08em;margin-bottom:8px}
+    .value{font-size:28px;font-weight:900;letter-spacing:-.06em}
+    .small{color:var(--muted);font-size:12px;margin-top:5px}
+    .tabs{display:flex;gap:5px;background:var(--soft2);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:16px;flex-wrap:wrap}
+    .tab{border:0;background:transparent;color:var(--muted);padding:9px 14px;border-radius:10px}
+    .tab.active{background:var(--navy);color:white}
+    .panel{display:none}.panel.active{display:block}
+    .table-card{background:var(--soft2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:18px}
+    .table-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .table-title{font-weight:900;font-size:15px}
+    .table-wrap{overflow:auto;max-height:70vh}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--soft3);color:var(--muted);text-align:left;padding:10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;border-bottom:1px solid var(--border)}
+    td{padding:10px;border-bottom:1px solid var(--border);color:var(--muted);white-space:nowrap}
+    td strong{color:var(--text)}
+    tr:hover{background:var(--soft3)}
+    .pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(61,191,122,.14);border:1px solid rgba(61,191,122,.28);color:var(--green);font-size:10px;font-weight:900}
+    .pill.red{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.28);color:var(--red)}
+    .empty{color:var(--muted);padding:28px;text-align:center}
+    .footer{color:var(--muted);font-size:11px;text-align:center;padding:24px}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <div class="brand-title">Corro — Smartrr Report</div>
+        <div class="brand-sub">Subscriptions dashboard</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button onclick="loadReport(true)">↻ Refresh</button>
+      <button onclick="toggleTheme()" id="themeBtn">☀</button>
+    </div>
+  </div>
 
+  <div class="container">
+    <div class="notice" id="notice">Loading data/report.json...</div>
+
+    <div class="filters">
+      <input id="search" placeholder="Search customer, email, product, status..." oninput="render()" />
+      <select id="monthFilter" onchange="render()">
+        <option value="all">All 2026</option>
+      </select>
+      <select id="statusFilter" onchange="render()">
+        <option value="">All statuses</option>
+      </select>
+    </div>
+
+    <div class="kpis">
+      <div class="card gold"><div class="label">Purchase States</div><div class="value" id="kTotal">—</div><div class="small">Selected range</div></div>
+      <div class="card"><div class="label">Active</div><div class="value" id="kActive">—</div><div class="small">Current active</div></div>
+      <div class="card"><div class="label">Paused</div><div class="value" id="kPaused">—</div><div class="small">Current paused</div></div>
+      <div class="card red"><div class="label">Cancelled</div><div class="value" id="kCancelled">—</div><div class="small">Cancelled records</div></div>
+      <div class="card"><div class="label">Customers</div><div class="value" id="kCustomers">—</div><div class="small">Unique customers</div></div>
+      <div class="card"><div class="label">Rows</div><div class="value" id="kRows">—</div><div class="small">Raw preview rows</div></div>
+      <div class="card red"><div class="label">Updated</div><div class="value" style="font-size:15px;letter-spacing:0" id="kUpdated">—</div><div class="small">GitHub Actions</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+      <button class="tab" data-tab="customers" onclick="switchTab('customers')">Customers</button>
+      <button class="tab" data-tab="states" onclick="switchTab('states')">Purchase States</button>
+      <button class="tab" data-tab="products" onclick="switchTab('products')">Product Volume</button>
+      <button class="tab" data-tab="months" onclick="switchTab('months')">Monthly Detail</button>
+      <button class="tab" data-tab="raw" onclick="switchTab('raw')">Raw Preview</button>
+      <button class="tab" data-tab="ranges" onclick="switchTab('ranges')">Ranges</button>
+    </div>
+
+    <div class="panel active" id="panel-dashboard"><div class="table-card"><div class="table-head"><div><div class="table-title">Dashboard</div><div class="small">Summary metrics</div></div></div><div class="table-wrap" id="summaryTable"></div></div></div>
+    <div class="panel" id="panel-customers"><div class="table-card"><div class="table-head"><div><div class="table-title">Customers</div><div class="small" id="customersCount">—</div></div></div><div class="table-wrap" id="customersTable"></div></div></div>
+    <div class="panel" id="panel-states"><div class="table-card"><div class="table-head"><div><div class="table-title">Purchase States</div><div class="small" id="statesCount">—</div></div></div><div class="table-wrap" id="statesTable"></div></div></div>
+    <div class="panel" id="panel-products"><div class="table-card"><div class="table-head"><div><div class="table-title">Product Volume</div><div class="small" id="productsCount">—</div></div></div><div class="table-wrap" id="productsTable"></div></div></div>
+    <div class="panel" id="panel-months"><div class="table-card"><div class="table-head"><div><div class="table-title">Monthly Detail</div><div class="small" id="monthsCount">—</div></div></div><div class="table-wrap" id="monthsTable"></div></div></div>
+    <div class="panel" id="panel-raw"><div class="table-card"><div class="table-head"><div><div class="table-title">Raw Preview</div><div class="small" id="rawCount">—</div></div></div><div class="table-wrap" id="rawTable"></div></div></div>
+    <div class="panel" id="panel-ranges"><div class="table-card"><div class="table-head"><div><div class="table-title">Ranges</div><div class="small">Available month filters</div></div></div><div class="table-wrap" id="rangesTable"></div></div></div>
+  </div>
+
+  <div class="footer">Smartrr API → GitHub Actions → data/report.json → GitHub Pages</div>
+
+  <script>
+    let report = {};
+    let customers = [];
+    let states = [];
+    let products = [];
+    let months = [];
+    let raw = [];
+    let ranges = [];
+    let summary = [];
+
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));
+    const num = v => Number(v || 0);
+    const fmtN = v => Math.round(num(v)).toLocaleString();
+    const fmtMoney = v => "$" + num(v).toLocaleString(undefined,{maximumFractionDigits:0});
+
+    function toggleTheme(){
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", html.dataset.theme);
+      $("themeBtn").textContent = html.dataset.theme === "dark" ? "☀" : "☾";
+    }
+
+    function switchTab(tab){
+      document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      $("panel-" + tab).classList.add("active");
+    }
+
+    async function loadReport(force=false){
+      const url = force ? "data/report.json?t=" + Date.now() : "data/report.json?t=" + Date.now();
+      const response = await fetch(url, {cache:"no-store"});
+      const text = await response.text();
+
+      try {
+        report = JSON.parse(text);
+      } catch(err) {
+        $("notice").innerHTML = `<strong>Error:</strong> data/report.json is invalid. Re-run GitHub Actions after updating build_report.py.`;
+        throw err;
+      }
+
+      customers = report.customers || [];
+      states = report.purchase_states || [];
+      products = report.product_volume || [];
+      months = report.months || [];
+      raw = report.raw || [];
+      ranges = report.ranges || [];
+      summary = report.summary || [];
+
+      $("notice").innerHTML = `<strong>Loaded:</strong> ${esc(report.meta?.source || "Smartrr API")} · Updated ${esc(report.meta?.updated_at || "—")} · Year ${esc(report.meta?.report_year || "2026")}`;
+
+      renderMonthFilter();
+      renderStatusFilter();
+      render();
+    }
+
+    function renderMonthFilter(){
+      const options = [`<option value="all">All 2026</option>`];
+
+      for (let m = 1; m <= 12; m++) {
+        const ym = `2026-${String(m).padStart(2,"0")}`;
+        options.push(`<option value="${ym}">${ym}</option>`);
+      }
+
+      $("monthFilter").innerHTML = options.join("");
+    }
+
+    function renderStatusFilter(){
+      $("statusFilter").innerHTML = `
+        <option value="">All statuses</option>
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="PAUSED">PAUSED</option>
+        <option value="CANCELLED">CANCELLED</option>
+        <option value="UNKNOWN">UNKNOWN</option>
+      `;
+    }
+
+    function filterRows(rows){
+      const q = $("search").value.toLowerCase();
+      const selectedMonth = $("monthFilter").value;
+      const selectedStatus = $("statusFilter").value.toUpperCase();
+
+      return rows.filter(r => {
+        const text = JSON.stringify(r).toLowerCase();
+        const rowMonth = String(r.month || "");
+        const rowStatus = String(r.status || "").toUpperCase();
+
+        return (!q || text.includes(q))
+          && (selectedMonth === "all" || rowMonth === selectedMonth)
+          && (!selectedStatus || rowStatus === selectedStatus);
+      });
+    }
+
+    function render(){
+      const fRaw = filterRows(raw);
+      const fStates = filterRows(states);
+      const fProducts = filterRows(products);
+      const fMonths = filterRows(months);
+      const fCustomers = filterRows(customers);
+
+      const uniqueStates = new Set(fRaw.map(r => r.subscription_id).filter(Boolean));
+      const active = new Set(fRaw.filter(r => String(r.status).toUpperCase()==="ACTIVE").map(r => r.subscription_id)).size;
+      const paused = new Set(fRaw.filter(r => String(r.status).toUpperCase()==="PAUSED").map(r => r.subscription_id)).size;
+      const cancelled = new Set(fRaw.filter(r => String(r.status).toUpperCase()==="CANCELLED").map(r => r.subscription_id)).size;
+
+      $("kTotal").textContent = fmtN(uniqueStates.size || fStates.length);
+      $("kActive").textContent = fmtN(active);
+      $("kPaused").textContent = fmtN(paused);
+      $("kCancelled").textContent = fmtN(cancelled);
+      $("kCustomers").textContent = fmtN(fCustomers.length);
+      $("kRows").textContent = fmtN(fRaw.length);
+      $("kUpdated").textContent = (report.meta?.updated_at || "—").slice(0,10);
+
+      renderSummary();
+      renderCustomers(fCustomers);
+      renderStates(fStates);
+      renderProducts(fProducts);
+      renderMonths(fMonths);
+      renderRaw(fRaw);
+      renderRanges(ranges);
+    }
+
+    function table(headers, rows){
+      if (!rows.length) return `<div class="empty">No rows found.</div>`;
+
+      return `
+        <table>
+          <thead><tr>${headers.map(h => `<th>${esc(h.label)}</th>`).join("")}</tr></thead>
+          <tbody>
+            ${rows.map(r => `<tr>${headers.map(h => `<td>${h.render ? h.render(r) : esc(r[h.key])}</td>`).join("")}</tr>`).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function statusPill(value){
+      const s = String(value || "UNKNOWN").toUpperCase();
+      const cls = s === "CANCELLED" ? "pill red" : "pill";
+      return `<span class="${cls}">${esc(s)}</span>`;
+    }
+
+    function renderSummary(){
+      $("summaryTable").innerHTML = table([
+        {label:"Metric", key:"metric"},
+        {label:"Value", key:"value"},
+      ], summary);
+    }
+
+    function renderCustomers(rows){
+      $("customersCount").textContent = `${rows.length.toLocaleString()} rows`;
+      $("customersTable").innerHTML = table([
+        {label:"#", key:"rank"},
+        {label:"Customer", render:r => `<strong>${esc(r.customer_name || "—")}</strong>`},
+        {label:"Email", key:"email"},
+        {label:"Phone", key:"phone"},
+        {label:"Orders", render:r => fmtN(r.orders)},
+        {label:"Gross Sales", render:r => fmtMoney(r.gross_sales)},
+        {label:"Net Sales", render:r => fmtMoney(r.net_sales)},
+        {label:"First Date", key:"first_order_date"},
+        {label:"Last Date", key:"last_order_date"},
+      ], rows);
+    }
+
+    function renderStates(rows){
+      $("statesCount").textContent = `${rows.length.toLocaleString()} rows`;
+      $("statesTable").innerHTML = table([
+        {label:"Subscription ID", key:"subscription_id"},
+        {label:"Status", render:r => statusPill(r.status)},
+        {label:"Month", key:"month"},
+        {label:"Created", key:"created_at"},
+        {label:"Updated", key:"updated_at"},
+        {label:"Cancelled", key:"cancelled_at"},
+        {label:"Next Billing", key:"next_billing_date"},
+        {label:"Customer", key:"customer_name"},
+        {label:"Email", key:"email"},
+      ], rows);
+    }
+
+    function renderProducts(rows){
+      $("productsCount").textContent = `${rows.length.toLocaleString()} rows`;
+      $("productsTable").innerHTML = table([
+        {label:"Month", key:"month"},
+        {label:"Status", render:r => statusPill(r.status)},
+        {label:"Product", render:r => `<strong>${esc(r.product_title || "—")}</strong>`},
+        {label:"SKU", key:"sku"},
+        {label:"Quantity", render:r => fmtN(r.total_quantity)},
+        {label:"Purchase States", render:r => fmtN(r.purchase_states)},
+        {label:"Gross Sales", render:r => fmtMoney(r.gross_sales)},
+      ], rows);
+    }
+
+    function renderMonths(rows){
+      $("monthsCount").textContent = `${rows.length.toLocaleString()} rows`;
+      $("monthsTable").innerHTML = table([
+        {label:"Month", key:"month"},
+        {label:"Status", render:r => statusPill(r.status)},
+        {label:"Orders", render:r => fmtN(r.orders)},
+        {label:"Quantity", render:r => fmtN(r.quantity)},
+        {label:"Gross Sales", render:r => fmtMoney(r.gross_sales)},
+        {label:"Net Sales", render:r => fmtMoney(r.net_sales)},
+        {label:"Gross Profit", render:r => fmtMoney(r.gross_profit)},
+      ], rows);
+    }
+
+    function renderRaw(rows){
+      $("rawCount").textContent = `${rows.length.toLocaleString()} rows`;
+      $("rawTable").innerHTML = table([
+        {label:"Subscription ID", key:"subscription_id"},
+        {label:"Status", render:r => statusPill(r.status)},
+        {label:"Month", key:"month"},
+        {label:"Customer", render:r => `<strong>${esc(r.customer_name || "—")}</strong>`},
+        {label:"Email", key:"email"},
+        {label:"Product", key:"product_title"},
+        {label:"SKU", key:"sku"},
+        {label:"Qty", render:r => fmtN(r.quantity)},
+        {label:"Gross", render:r => fmtMoney(r.gross_sales)},
+        {label:"Created", key:"created_at"},
+      ], rows.slice(0,5000));
+    }
+
+    function renderRanges(rows){
+      $("rangesTable").innerHTML = table([
+        {label:"Range ID", key:"range_id"},
+        {label:"Label", key:"range_label"},
+        {label:"Start", key:"range_start"},
+        {label:"End", key:"range_end"},
+        {label:"Status", key:"range_status"},
+      ], rows);
+    }
+
+    (function init(){
+      const theme = localStorage.getItem("theme") || "dark";
+      document.documentElement.dataset.theme = theme;
+      $("themeBtn").textContent = theme === "dark" ? "☀" : "☾";
+
+      loadReport(false).catch(err => {
+        $("notice").innerHTML = `<strong>Error:</strong> ${esc(err.message)}`;
+      });
+    })();
+  </script>
+</body>
+</html>
